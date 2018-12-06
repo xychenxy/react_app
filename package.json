@@ -5,6 +5,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "prop-types": "^15.6.2",
+    "pubsub-js": "^1.7.0",
     "rc-time-picker": "^3.4.0",
     "react": "^16.6.3",
     "react-datetime": "^2.16.3",

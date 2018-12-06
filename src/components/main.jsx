@@ -1,14 +1,10 @@
 
 import React, {Component} from 'react'
-import PropTypes from 'prop-types'
 import axios from 'axios'
-
+import PubSub from 'pubsub-js'
 
 export default class Main extends Component{
 
-    static propTypes = {
-        searchName:PropTypes.string.isRequired
-    }
 
     state = {
         initView: true,
@@ -18,47 +14,50 @@ export default class Main extends Component{
     }
 
 
+    componentDidMount(){
+        //订阅消失
+        PubSub.subscribe('search',(msg,searchName) =>{
+            // 更新状态， 请求中
 
-    // 当组件接受到新的属性时候，你想回调
-    componentWillReceiveProps(nextProps){
-        const searchName = nextProps.searchName
+            this.setState({
+                initView:false,
+                loading:true
+            })
 
-        // 更新状态， 请求中
-        this.setState({
-            initView:false,
-            loading:true
+            // 发送ajax请求
+
+            // const url = 'https://api.github.com/search/users?q=${searchName}'
+            const url = 'https://api.github.com/search/users?q=' + searchName
+
+            console.log('url is: ' + url)
+
+            axios.get(url)
+
+                .then(response =>{
+                    //得到响应数据，更新成功状态
+                    const result = response.data
+                    console.log(result)
+                    const users = result.items.map(item => (
+                        {name:item.login,url:item.html_url,avatarUrl:item.avatar_url}
+                    ))
+                    this.setState({
+                        loading:false,
+                        users
+                    })
+                })
+                .catch(err =>{
+
+                    //更新失败状态
+                    this.setState({
+                        loading:false,
+                        errMsg:err.message
+                    })
+                })
         })
 
-        // 发送ajax请求
-
-        // const url = 'https://api.github.com/search/users?q=${searchName}'
-        const url = 'https://api.github.com/search/users?q=' + searchName
-
-        console.log('url is: ' + url)
-
-        axios.get(url)
-
-            .then(response =>{
-                //得到响应数据，更新成功状态
-                const result = response.data
-                console.log(result)
-                const users = result.items.map(item => (
-                    {name:item.login,url:item.html_url,avatarUrl:item.avatar_url}
-                    ))
-                this.setState({
-                    loading:false,
-                    users
-                })
-            })
-            .catch(err =>{
-
-                //更新失败状态
-                this.setState({
-                    loading:false,
-                    errMsg:err.message
-                })
-            })
     }
+
+
 
 
     render(){
@@ -81,7 +80,7 @@ export default class Main extends Component{
                                 <a href={user.url} target="_blank">
                                 <img src={user.avatarUrl} style={{width: 100}}/>
                                  </a>
-                            <p className="card-text">{user.name}</p>
+                                 <p className="card-text">{user.name}</p>
                              </div>))
                     }
                 </div>
